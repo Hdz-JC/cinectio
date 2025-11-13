@@ -8,20 +8,27 @@ import 'package:dio/dio.dart';
 class MoviedbDatasource extends MoviesDatasource {
   final dio = Dio(BaseOptions(
     baseUrl: Enviroment.theBaseUrl,
+    headers: {
+      'Content-Type':'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ${Enviroment.key}',
+    },
     queryParameters: {'api_key':Enviroment.key, 'language':'ex-MX'},
   ),
 );
   @override
-  Future<List<Map<String,dynamic>>> getNowPlaying({int page=1})async{
-      final response = await dio.get('movie/now_playing');
+  Future<List<Movie>> getNowPlaying({int page=1}) async {
+      final response = await dio.get(
+        'movie/now_playing',
+        queryParameters: {'page':page},);
       final movieDBResponse = MovieDbResponse.fromJson(response.data);
-      final List<Movie> movies = movieDBResponse.results.where(
+
+      final movies = movieDBResponse.results.where(
         (moviedb) => moviedb.posterPath != 'no-poster')
         .map((moviedb) => MovieMapper.movieDBToMovieEntity(moviedb))
         .toList();
 
-      return List<Map<String,dynamic>>.from(response.data['results']);
+      return movies;
+  
   }
-
    
 }
